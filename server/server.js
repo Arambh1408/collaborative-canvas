@@ -1,33 +1,47 @@
-const express = require('express');
-const WebSocket = require('ws');
-const { RoomManager } = require('./rooms');
-const { DrawingState } = require('./drawing-state');
+const express = require("express");
+const WebSocket = require("ws");
 
 const app = express();
-app.use(express.static('client'));
-const server = app.listen(3000, () => console.log('Server on 3000'));
+app.use(express.static("client"));
+
+const server = app.listen(3000, () =>
+  console.log("Server on 3000")
+);
+
 const wss = new WebSocket.Server({ server });
 
-const roomManager = new RoomManager();
+const strokes = [];
 
-wss.on('connection', (ws) => {
-    const userId = Date.now().toString();
-    const color = '#' + Math.floor(Math.random()*16777215).toString(16); // Random color
-    const room = roomManager.getRoom('default'); // Single room
-    room.addUser(userId, color, ws);
+wss.on("connection", (ws) => {
+  // Send existing canvas
+  ws.send(JSON.stringify({
+    type: "init",
+    strokes
+  }));
 
-    ws.send(JSON.stringify({type: 'user-info', userId, color}));
-    ws.send(JSON.stringify({type: 'init', operations: room.drawingState.operations}));
-    room.broadcast({type: 'user-list', users: room.getUsers()});
+  ws.on("message", (data) => {
+    const msg = JSON.parse(data);
 
-    ws.on('message', (data) => {
-        const msg = JSON.parse(data);
-        msg.userId = userId; // Ensure userId
-        room.handleMessage(msg);
-    });
+    if (msg.type === "stroke:start") {
+      strokes.push(msg.stroke);
+      broadcast({
+        type: "stroke",
+        stroke: msg.stroke
+      });
+    }
 
-    ws.on('close', () => {
-        room.removeUser(userId);
-        room.broadcast({type: 'user-list', users: room.getUsers()});
-    });
+    if (msg.type === "stroke:move") {
+      const stroke = strokes.find(s => s.id === msg.id);
+      if (stroke) stroke.path.push(msg.point);
+      broadcast({ type: "noop" });
+    }
+  });
 });
+
+function broadcast(msg) {
+  wss.clients.forEach(c => {
+    if (c.readyState === WebSocket.OPEN) {
+      c.send(JSON.stringify(msg));
+    }
+  });
+}
