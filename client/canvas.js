@@ -7,6 +7,8 @@ class CanvasApp {
     this.currentStroke = null;
     this.strokes = [];
 
+    this.cursors = {}; // { userId: { x, y } }
+
     this.color = "#000000";
     this.width = 5;
 
@@ -18,6 +20,20 @@ class CanvasApp {
     this.canvas.addEventListener("mousemove", (e) => this.move(e));
     this.canvas.addEventListener("mouseup", () => this.end());
     this.canvas.addEventListener("mouseleave", () => this.end());
+
+    // cursor tracking (throttled)
+    let lastSent = 0;
+    this.canvas.addEventListener("mousemove", (e) => {
+      const now = Date.now();
+      if (now - lastSent > 30) {
+        wsClient.send({
+          type: "cursor",
+          x: e.offsetX,
+          y: e.offsetY
+        });
+        lastSent = now;
+      }
+    });
   }
 
   start(e) {
@@ -64,24 +80,47 @@ class CanvasApp {
   }
 
   drawSegment(stroke) {
-    const ctx = this.ctx;
     const p = stroke.path;
     if (p.length < 2) return;
 
-    ctx.strokeStyle = stroke.color;
-    ctx.lineWidth = stroke.width;
-    ctx.lineCap = "round";
+    this.ctx.strokeStyle = stroke.color;
+    this.ctx.lineWidth = stroke.width;
+    this.ctx.lineCap = "round";
 
-    ctx.beginPath();
-    ctx.moveTo(p[p.length - 2].x, p[p.length - 2].y);
-    ctx.lineTo(p[p.length - 1].x, p[p.length - 1].y);
-    ctx.stroke();
+    this.ctx.beginPath();
+    this.ctx.moveTo(p[p.length - 2].x, p[p.length - 2].y);
+    this.ctx.lineTo(p[p.length - 1].x, p[p.length - 1].y);
+    this.ctx.stroke();
   }
 
   applyRemoteStroke(stroke) {
     this.strokes.push(stroke);
     stroke.path.forEach((_, i) => {
       if (i > 0) this.drawSegment(stroke);
+    });
+  }
+
+  updateCursor(userId, x, y) {
+    this.cursors[userId] = { x, y };
+    this.redraw();
+  }
+
+  redraw() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // redraw strokes
+    this.strokes.forEach(stroke => {
+      stroke.path.forEach((_, i) => {
+        if (i > 0) this.drawSegment(stroke);
+      });
+    });
+
+    // draw cursors
+    Object.values(this.cursors).forEach(c => {
+      this.ctx.fillStyle = "red";
+      this.ctx.beginPath();
+      this.ctx.arc(c.x, c.y, 4, 0, Math.PI * 2);
+      this.ctx.fill();
     });
   }
 }

@@ -13,34 +13,40 @@ const wss = new WebSocket.Server({ server });
 const strokes = [];
 
 wss.on("connection", (ws) => {
-  // Send existing canvas
-  ws.send(JSON.stringify({
-    type: "init",
-    strokes
-  }));
+  const userId = crypto.randomUUID();
 
   ws.on("message", (data) => {
     const msg = JSON.parse(data);
 
+    // drawing
     if (msg.type === "stroke:start") {
       strokes.push(msg.stroke);
       broadcast({
         type: "stroke",
         stroke: msg.stroke
-      });
+      }, ws);
     }
 
     if (msg.type === "stroke:move") {
       const stroke = strokes.find(s => s.id === msg.id);
       if (stroke) stroke.path.push(msg.point);
-      broadcast({ type: "noop" });
+    }
+
+    // cursor
+    if (msg.type === "cursor") {
+      broadcast({
+        type: "cursor",
+        userId,
+        x: msg.x,
+        y: msg.y
+      }, ws);
     }
   });
 });
 
-function broadcast(msg) {
+function broadcast(msg, sender) {
   wss.clients.forEach(c => {
-    if (c.readyState === WebSocket.OPEN) {
+    if (c !== sender && c.readyState === WebSocket.OPEN) {
       c.send(JSON.stringify(msg));
     }
   });
