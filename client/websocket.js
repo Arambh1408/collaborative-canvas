@@ -20,27 +20,29 @@ class WebSocketClient {
                 window.userColor = msg.color;
                 break;
             case 'init':
-                window.canvasApp.loadHistory(msg.operations);
+                if (window.canvasApp) window.canvasApp.loadHistory(msg.operations);
                 break;
             case 'draw-start':
             case 'draw-move':
             case 'draw-end':
-                window.canvasApp.replayEvent(msg);
+                if (window.canvasApp) window.canvasApp.replayEvent(msg);
                 break;
             case 'cursor':
-                window.canvasApp.updateCursor(msg.userId, msg.x, msg.y);
+                if (window.canvasApp) window.canvasApp.updateCursor(msg.userId, msg.x, msg.y);
                 break;
             case 'undo':
-                window.canvasApp.undoOperation(msg.operationId);
+                console.log('Undo received for operationId:', msg.operationId); // Debug log (remove after testing)
+                if (window.canvasApp) window.canvasApp.undoOperation(msg.operationId);
                 break;
             case 'redo':
-                window.canvasApp.redoOperation(msg.operationId);
+                console.log('Redo received for operationId:', msg.operationId); // Debug log (remove after testing)
+                if (window.canvasApp) window.canvasApp.redoOperation(msg.operationId);
                 break;
             case 'user-list':
-                window.canvasApp.updateUsers(msg.users);
+                if (window.canvasApp) window.canvasApp.updateUsers(msg.users);
                 break;
         }
     }
 }
 
-window.wsClient = new WebSocketClient('ws://localhost:3000');
+// Note: Do NOT instantiate here. Moved to main.js to ensure canvasApp is ready.
