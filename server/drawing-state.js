@@ -1,34 +1,31 @@
 class DrawingState {
-    constructor() {
-        this.operations = []; // Array of drawing operations: {id, type: 'stroke', path: [{x, y}], color, width}
-        this.undone = []; // Stack for redo operations
-    }
+  constructor() {
+    this.strokes = [];
+    this.undone = [];
+  }
 
-    // Add a new operation (e.g., a stroke)
-    addOperation(operation) {
-        this.operations.push(operation);
-    }
+  addStroke(stroke) {
+    this.strokes.push(stroke);
+    this.undone = []; // clear redo stack on new draw
+  }
 
-    // Undo the last operation (remove from operations, add to undone)
-    undo() {
-        if (this.operations.length === 0) return null;
-        const operation = this.operations.pop();
-        this.undone.push(operation);
-        return operation.id; // Return ID for broadcasting
-    }
+  undo() {
+    if (this.strokes.length === 0) return null;
+    const stroke = this.strokes.pop();
+    this.undone.push(stroke);
+    return stroke;
+  }
 
-    // Redo the last undone operation
-    redo() {
-        if (this.undone.length === 0) return null;
-        const operation = this.undone.pop();
-        this.operations.push(operation);
-        return operation.id; // Return ID for broadcasting
-    }
+  redo() {
+    if (this.undone.length === 0) return null;
+    const stroke = this.undone.pop();
+    this.strokes.push(stroke);
+    return stroke;
+  }
 
-    // Get all current operations (for new users or full redraw)
-    getOperations() {
-        return this.operations;
-    }
+  getState() {
+    return this.strokes;
+  }
 }
 
 module.exports = { DrawingState };

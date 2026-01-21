@@ -12,4 +12,13 @@ window.onload = () => {
 
   document.getElementById("width").onchange = (e) =>
     canvasApp.width = e.target.value;
+  
+  document.getElementById("undo").onclick = () => {
+  wsClient.send({ type: "undo" });
+};
+
+document.getElementById("redo").onclick = () => {
+  wsClient.send({ type: "redo" });
+};
+
 };

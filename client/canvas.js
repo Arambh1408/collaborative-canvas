@@ -3,12 +3,10 @@ class CanvasApp {
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
 
-    this.isDrawing = false;
-    this.currentStroke = null;
     this.strokes = [];
-
-    this.cursors = {}; // { userId: { x, y, color } }
-
+    this.currentStroke = null;
+    this.isDrawing = false;
+    this.cursors = [];
 
     this.color = "#000000";
     this.width = 5;
@@ -17,55 +15,30 @@ class CanvasApp {
   }
 
   attachEvents() {
-    this.canvas.addEventListener("mousedown", (e) => this.start(e));
-    this.canvas.addEventListener("mousemove", (e) => this.move(e));
+    this.canvas.addEventListener("mousedown", e => this.start(e));
+    this.canvas.addEventListener("mousemove", e => this.move(e));
     this.canvas.addEventListener("mouseup", () => this.end());
-    this.canvas.addEventListener("mouseleave", () => this.end());
-
-    // cursor tracking (throttled)
-    let lastSent = 0;
-    this.canvas.addEventListener("mousemove", (e) => {
-      const now = Date.now();
-      if (now - lastSent > 30) {
-        wsClient.send({
-          type: "cursor",
-          x: e.offsetX,
-          y: e.offsetY
-        });
-        lastSent = now;
-      }
-    });
   }
 
   start(e) {
     this.isDrawing = true;
-
     this.currentStroke = {
       id: crypto.randomUUID(),
       color: this.color,
       width: this.width,
       path: [{ x: e.offsetX, y: e.offsetY }]
     };
-
-    wsClient.send({
-      type: "stroke:start",
-      stroke: this.currentStroke
-    });
   }
 
   move(e) {
     if (!this.isDrawing) return;
 
-    const point = { x: e.offsetX, y: e.offsetY };
-    this.currentStroke.path.push(point);
-
-    wsClient.send({
-      type: "stroke:move",
-      id: this.currentStroke.id,
-      point
+    this.currentStroke.path.push({
+      x: e.offsetX,
+      y: e.offsetY
     });
 
-    this.drawSegment(this.currentStroke);
+    this.redraw(true);
   }
 
   end() {
@@ -73,14 +46,29 @@ class CanvasApp {
     this.isDrawing = false;
 
     wsClient.send({
-      type: "stroke:end",
-      id: this.currentStroke.id
+      type: "stroke",
+      stroke: this.currentStroke
     });
 
     this.currentStroke = null;
   }
 
-  drawSegment(stroke) {
+  setState(strokes) {
+    this.strokes = strokes;
+    this.redraw();
+  }
+
+  redraw(showPreview = false) {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    this.strokes.forEach(s => this.drawStroke(s));
+
+    if (showPreview && this.currentStroke) {
+      this.drawStroke(this.currentStroke);
+    }
+  }
+
+  drawStroke(stroke) {
     const p = stroke.path;
     if (p.length < 2) return;
 
@@ -89,40 +77,12 @@ class CanvasApp {
     this.ctx.lineCap = "round";
 
     this.ctx.beginPath();
-    this.ctx.moveTo(p[p.length - 2].x, p[p.length - 2].y);
-    this.ctx.lineTo(p[p.length - 1].x, p[p.length - 1].y);
+    this.ctx.moveTo(p[0].x, p[0].y);
+    for (let i = 1; i < p.length; i++) {
+      this.ctx.lineTo(p[i].x, p[i].y);
+    }
     this.ctx.stroke();
   }
 
-  applyRemoteStroke(stroke) {
-    this.strokes.push(stroke);
-    stroke.path.forEach((_, i) => {
-      if (i > 0) this.drawSegment(stroke);
-    });
-  }
-
-  updateCursor(userId, x, y, color) {
-  this.cursors[userId] = { x, y, color };
-  this.redraw();
-  }
-
-
-  redraw() {
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // redraw strokes
-    this.strokes.forEach(stroke => {
-      stroke.path.forEach((_, i) => {
-        if (i > 0) this.drawSegment(stroke);
-      });
-    });
-
-    // draw cursors
-   Object.values(this.cursors).forEach(c => {
-  this.ctx.fillStyle = c.color || "red";
-  this.ctx.beginPath();
-  this.ctx.arc(c.x, c.y, 4, 0, Math.PI * 2);
-  this.ctx.fill();
-  });
-  }
+  updateCursor(x, y) {}
 }

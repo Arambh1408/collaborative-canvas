@@ -5,17 +5,12 @@ class WebSocketClient {
     this.ws.onmessage = (e) => {
       const msg = JSON.parse(e.data);
 
-      if (msg.type === "stroke") {
-        canvasApp.applyRemoteStroke(msg.stroke);
+      if (msg.type === "state") {
+        canvasApp.setState(msg.strokes);
       }
 
       if (msg.type === "cursor") {
-        canvasApp.updateCursor(
-          msg.userId,
-          msg.x,
-          msg.y,
-          msg.color
-        );
+        canvasApp.updateCursor(msg.x, msg.y);
       }
     };
   }

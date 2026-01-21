@@ -1,77 +1,132 @@
-const { DrawingState } = require('./drawing-state');
+const { DrawingState } = require("./drawing-state");
+const WebSocket = require("ws");
 
 class Room {
-    constructor(id) {
-        this.id = id;
-        this.users = {}; // {userId: {color, ws}}
-        this.drawingState = new DrawingState();
-    }
+  constructor(id) {
+    this.id = id;
+    this.users = {}; // { userId: { color, ws } }
+    this.drawingState = new DrawingState();
+  }
 
-    addUser(userId, color, ws) {
-        this.users[userId] = {color, ws};
-    }
+  addUser(userId, color, ws) {
+    this.users[userId] = { color, ws };
+  }
 
-    removeUser(userId) {
-        delete this.users[userId];
-    }
+  removeUser(userId) {
+    delete this.users[userId];
+  }
 
-    getUsers() {
-        return Object.keys(this.users).map(id => ({id, color: this.users[id].color}));
-    }
+  getUsers() {
+    return Object.entries(this.users).map(([id, u]) => ({
+      id,
+      color: u.color
+    }));
+  }
 
-    broadcast(msg) {
-        Object.values(this.users).forEach(user => {
-            if (user.ws.readyState === WebSocket.OPEN) {
-                user.ws.send(JSON.stringify(msg));
-            }
+  broadcast(msg) {
+    const data = JSON.stringify(msg);
+    Object.values(this.users).forEach(user => {
+      if (user.ws.readyState === WebSocket.OPEN) {
+        user.ws.send(data);
+      }
+    });
+  }
+
+  handleMessage(msg) {
+    switch (msg.type) {
+
+      /* =====================
+         STROKE HANDLING
+      ====================== */
+
+      case "stroke:start": {
+        // add stroke ONCE
+        this.drawingState.addStroke(msg.stroke);
+
+        this.broadcast({
+          type: "stroke:start",
+          stroke: msg.stroke
         });
-    }
+        break;
+      }
 
-    handleMessage(msg) {
-        switch (msg.type) {
-            case 'join':
-                // Already handled in server.js
-                break;
-            case 'draw-start':
-                const op = {id: Date.now() + Math.random(), type: 'stroke', path: [{x: msg.x, y: msg.y}], color: msg.color, width: msg.width};
-                this.drawingState.addOperation(op);
-                this.broadcast({type: 'draw-start', id: op.id, ...msg});
-                break;
-            case 'draw-move':
-                // Find the operation and add to path
-                const operation = this.drawingState.operations.find(o => o.id === msg.id);
-                if (operation) operation.path.push({x: msg.x, y: msg.y});
-                this.broadcast(msg);
-                break;
-            case 'draw-end':
-                this.broadcast(msg);
-                break;
-            case 'cursor':
-                this.broadcast(msg);
-                break;
-            case 'undo':
-                const undoneId = this.drawingState.undo();
-                if (undoneId) this.broadcast({type: 'undo', operationId: undoneId});
-                break;
-            case 'redo':
-                const redoneId = this.drawingState.redo();
-                if (redoneId) this.broadcast({type: 'redo', operationId: redoneId});
-                break;
+      case "stroke:move": {
+        const stroke = this.drawingState.strokes.find(
+          s => s.id === msg.id
+        );
+
+        if (stroke) {
+          stroke.path.push(msg.point);
+          this.broadcast(msg);
         }
+        break;
+      }
+
+      case "stroke:end": {
+        this.broadcast(msg);
+        break;
+      }
+
+      /* =====================
+         CURSOR TRACKING
+      ====================== */
+
+      case "cursor": {
+        const user = this.users[msg.userId];
+        if (!user) return;
+
+        this.broadcast({
+          type: "cursor",
+          userId: msg.userId,
+          x: msg.x,
+          y: msg.y,
+          color: user.color
+        });
+        break;
+      }
+
+      /* =====================
+         UNDO / REDO
+      ====================== */
+
+      case "undo": {
+        const undone = this.drawingState.undo();
+        console.log("UNDO:", undone);
+        if (undone) {
+          this.broadcast({
+            type: "undo",
+            strokeId: undone.id
+          });
+        }
+        break;
+      }
+
+      case "redo": {
+        const redone = this.drawingState.redo();
+        console.log("REDO", redone);
+        if (redone) {
+          this.broadcast({
+            type: "redo",
+            stroke: redone
+          });
+        }
+        break;
+      }
     }
+  }
 }
 
 class RoomManager {
-    constructor() {
-        this.rooms = {};
-    }
+  constructor() {
+    this.rooms = {};
+  }
 
-    getRoom(id) {
-        if (!this.rooms[id]) {
-            this.rooms[id] = new Room(id);
-        }
-        return this.rooms[id];
+  getRoom(id) {
+    if (!this.rooms[id]) {
+      this.rooms[id] = new Room(id);
     }
+    return this.rooms[id];
+  }
 }
 
 module.exports = { RoomManager };
