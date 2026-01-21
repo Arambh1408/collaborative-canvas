@@ -15,11 +15,15 @@ window.onload = () => {
   canvasApp = new CanvasApp(canvas);
 
   
-  wsClient = new WebSocketClient("ws://localhost:3000", {
-    name,
-    room,
-    password
-  });
+ const protocol = location.protocol === "https:" ? "wss" : "ws";
+ const wsUrl = `${protocol}://${location.host}`;
+
+wsClient = new WebSocketClient(wsUrl, {
+  name,
+  room,
+  password
+});
+
 
   
 
