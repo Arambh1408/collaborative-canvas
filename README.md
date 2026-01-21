@@ -128,6 +128,11 @@ collaborative-canvas/
      - Chrome
      - Firefox
      - Edge
+#  Live Demo
+  https://collaborative-canvas.onrender.com
+* Test Rooms
+https://collaborative-canvas.onrender.com/?room=demo  
+https://collaborative-canvas.onrender.com/?room=private
 
 # Final Notes
 This project focuses on correctness, synchronization, and real-world architecture decisions rather than UI polish or over-engineering.
