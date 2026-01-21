@@ -10,7 +10,12 @@ class WebSocketClient {
       }
 
       if (msg.type === "cursor") {
-        canvasApp.updateCursor(msg.userId, msg.x, msg.y);
+        canvasApp.updateCursor(
+          msg.userId,
+          msg.x,
+          msg.y,
+          msg.color
+        );
       }
     };
   }

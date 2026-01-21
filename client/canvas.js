@@ -7,7 +7,8 @@ class CanvasApp {
     this.currentStroke = null;
     this.strokes = [];
 
-    this.cursors = {}; // { userId: { x, y } }
+    this.cursors = {}; // { userId: { x, y, color } }
+
 
     this.color = "#000000";
     this.width = 5;
@@ -100,10 +101,11 @@ class CanvasApp {
     });
   }
 
-  updateCursor(userId, x, y) {
-    this.cursors[userId] = { x, y };
-    this.redraw();
+  updateCursor(userId, x, y, color) {
+  this.cursors[userId] = { x, y, color };
+  this.redraw();
   }
+
 
   redraw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -116,11 +118,11 @@ class CanvasApp {
     });
 
     // draw cursors
-    Object.values(this.cursors).forEach(c => {
-      this.ctx.fillStyle = "red";
-      this.ctx.beginPath();
-      this.ctx.arc(c.x, c.y, 4, 0, Math.PI * 2);
-      this.ctx.fill();
-    });
+   Object.values(this.cursors).forEach(c => {
+  this.ctx.fillStyle = c.color || "red";
+  this.ctx.beginPath();
+  this.ctx.arc(c.x, c.y, 4, 0, Math.PI * 2);
+  this.ctx.fill();
+  });
   }
 }
