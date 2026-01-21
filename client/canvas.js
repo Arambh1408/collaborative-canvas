@@ -12,6 +12,8 @@ class CanvasApp {
     this.color = "#000000";
     this.width = 5;
 
+    this.tool = "brush"; // "brush" | "eraser"
+
     this.attachEvents();
   }
 
@@ -19,7 +21,9 @@ class CanvasApp {
     this.canvas.addEventListener("mousedown", e => this.start(e));
     this.canvas.addEventListener("mousemove", e => this.move(e));
     this.canvas.addEventListener("mouseup", () => this.end());
+    this.canvas.addEventListener("mouseleave", () => this.end());
 
+    // live cursor
     this.canvas.addEventListener("mousemove", e => {
       wsClient.send({
         type: "cursor",
@@ -31,8 +35,10 @@ class CanvasApp {
 
   start(e) {
     this.isDrawing = true;
+
     this.currentStroke = {
       id: crypto.randomUUID(),
+      tool: this.tool,          // ✅ STORE TOOL
       color: this.color,
       width: this.width,
       path: [{ x: e.offsetX, y: e.offsetY }]
@@ -41,7 +47,12 @@ class CanvasApp {
 
   move(e) {
     if (!this.isDrawing) return;
-    this.currentStroke.path.push({ x: e.offsetX, y: e.offsetY });
+
+    this.currentStroke.path.push({
+      x: e.offsetX,
+      y: e.offsetY
+    });
+
     this.redraw();
   }
 
@@ -70,10 +81,11 @@ class CanvasApp {
   redraw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
+    // draw strokes
     this.strokes.forEach(s => this.drawStroke(s));
     if (this.currentStroke) this.drawStroke(this.currentStroke);
 
-    // ✅ draw cursors + names
+    // draw cursors + names
     Object.values(this.cursors).forEach(c => {
       this.ctx.fillStyle = c.color;
       this.ctx.beginPath();
@@ -89,8 +101,18 @@ class CanvasApp {
     const p = stroke.path;
     if (p.length < 2) return;
 
-    this.ctx.strokeStyle = stroke.color;
-    this.ctx.lineWidth = stroke.width;
+    // 🔴 ERASER
+    if (stroke.tool === "eraser") {
+      this.ctx.globalCompositeOperation = "destination-out";
+      this.ctx.lineWidth = stroke.width * 2;
+    } 
+    // 🖊 BRUSH
+    else {
+      this.ctx.globalCompositeOperation = "source-over";
+      this.ctx.strokeStyle = stroke.color;
+      this.ctx.lineWidth = stroke.width;
+    }
+
     this.ctx.lineCap = "round";
 
     this.ctx.beginPath();
@@ -99,5 +121,8 @@ class CanvasApp {
       this.ctx.lineTo(p[i].x, p[i].y);
     }
     this.ctx.stroke();
+
+    // reset
+    this.ctx.globalCompositeOperation = "source-over";
   }
 }

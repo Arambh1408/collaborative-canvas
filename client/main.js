@@ -29,4 +29,13 @@ window.onload = () => {
 
   document.getElementById("redo").onclick = () =>
     wsClient.send({ type: "redo" });
+
+  document.getElementById("eraser").onclick = () => {
+  canvasApp.tool = "eraser";
+  };
+
+  document.getElementById("brush").onclick = () => {
+  canvasApp.tool = "brush";
+  };
+
 };
