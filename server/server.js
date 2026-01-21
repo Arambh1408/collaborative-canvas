@@ -94,52 +94,56 @@ wss.on("connection", (ws) => {
   ws.on("message", (data) => {
     const msg = JSON.parse(data);
 
+    /* ===== PERFORMANCE: PING / PONG ===== */
+    if (msg.type === "ping") {
+      ws.send(JSON.stringify({ type: "pong" }));
+      return;
+    }
+
     /* -------- JOIN ROOM -------- */
     if (msg.type === "join") {
-  const roomId = msg.room;
-  const providedPassword = msg.password || null;
+      const roomId = msg.room;
+      const providedPassword = msg.password || null;
 
-  // 1️⃣ Check persisted room
-  const persisted = persistedRooms[roomId];
+      // check persisted room
+      const persisted = persistedRooms[roomId];
+      if (persisted && persisted.password !== providedPassword) {
+        ws.send(JSON.stringify({
+          type: "error",
+          message: "Invalid room password"
+        }));
+        ws.close();
+        return;
+      }
 
-  if (persisted && persisted.password !== providedPassword) {
-    ws.send(JSON.stringify({
-      type: "error",
-      message: "Invalid room password"
-    }));
-    ws.close();
-    return;
-  }
+      // check in-memory room
+      if (rooms[roomId] && rooms[roomId].password !== providedPassword) {
+        ws.send(JSON.stringify({
+          type: "error",
+          message: "Invalid room password"
+        }));
+        ws.close();
+        return;
+      }
 
-  // 2️⃣ Check in-memory room
-  if (rooms[roomId] && rooms[roomId].password !== providedPassword) {
-    ws.send(JSON.stringify({
-      type: "error",
-      message: "Invalid room password"
-    }));
-    ws.close();
-    return;
-  }
+      // create / join room
+      room = getRoom(roomId, providedPassword);
 
-  // 3️⃣ Create or get room ONLY AFTER validation
-  room = getRoom(roomId, providedPassword);
+      room.users[userId] = {
+        name: msg.name,
+        color: randomColor(),
+        ws
+      };
 
-  room.users[userId] = {
-    name: msg.name,
-    color: randomColor(),
-    ws
-  };
+      ws.send(JSON.stringify({
+        type: "state",
+        strokes: room.strokes
+      }));
 
-  ws.send(JSON.stringify({
-    type: "state",
-    strokes: room.strokes
-  }));
-
-  broadcastUsers(room);
-  saveRoomsToDisk();
-  return;
-}
-
+      broadcastUsers(room);
+      saveRoomsToDisk();
+      return;
+    }
 
     if (!room) return;
 

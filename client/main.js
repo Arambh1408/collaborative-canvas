@@ -11,31 +11,60 @@ window.onload = () => {
 
   const password = prompt("Room password (leave blank if none)") || null;
 
+  // initialize canvas
   canvasApp = new CanvasApp(canvas);
+
+  // initialize websocket
   wsClient = new WebSocketClient("ws://localhost:3000", {
     name,
     room,
     password
   });
 
-  document.getElementById("color").onchange = (e) =>
+  /* ===== Toolbar Controls ===== */
+
+  document.getElementById("color").onchange = (e) => {
     canvasApp.color = e.target.value;
+  };
 
-  document.getElementById("width").onchange = (e) =>
+  document.getElementById("width").onchange = (e) => {
     canvasApp.width = e.target.value;
+  };
 
-  document.getElementById("undo").onclick = () =>
+  document.getElementById("undo").onclick = () => {
     wsClient.send({ type: "undo" });
+  };
 
-  document.getElementById("redo").onclick = () =>
+  document.getElementById("redo").onclick = () => {
     wsClient.send({ type: "redo" });
+  };
 
   document.getElementById("eraser").onclick = () => {
-  canvasApp.tool = "eraser";
+    canvasApp.tool = "eraser";
   };
 
   document.getElementById("brush").onclick = () => {
-  canvasApp.tool = "brush";
+    canvasApp.tool = "brush";
   };
 
+  /* ===== FPS Counter (Client-only) ===== */
+  let frames = 0;
+  let lastTime = performance.now();
+
+  function fpsLoop() {
+    frames++;
+    const now = performance.now();
+
+    if (now - lastTime >= 1000) {
+      const fpsEl = document.getElementById("fps");
+      if (fpsEl) fpsEl.textContent = frames;
+
+      frames = 0;
+      lastTime = now;
+    }
+
+    requestAnimationFrame(fpsLoop);
+  }
+
+  requestAnimationFrame(fpsLoop);
 };
