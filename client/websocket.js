@@ -5,28 +5,17 @@ class WebSocketClient {
     this.ws.onmessage = (e) => {
       const msg = JSON.parse(e.data);
 
-      if (msg.type === "init") {
-        window.userId = msg.userId;
-        canvasApp.setState(msg.strokes);
-        updateUserList(msg.users);
-      }
+      switch (msg.type) {
+        case "state":
+          canvasApp.setState(msg.strokes);
+          break;
 
-      if (msg.type === "state" ) {
-        canvasApp.setState(msg.strokes);
-      }
+        case "cursor":
+          canvasApp.updateCursor(msg.x, msg.y);
+          break;
 
-
-      if (msg.type === "cursor" ) {
-        canvasApp.updateCursor(
-          msg.userId,
-          msg.x,
-          msg.y,
-          msg.color
-        );
-      }
-
-      if (msg.type === "user-list") {
-        updateUserList(msg.users);
+        default:
+          break;
       }
     };
   }

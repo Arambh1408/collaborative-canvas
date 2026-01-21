@@ -48,7 +48,7 @@ class CanvasApp {
       y: e.offsetY
     });
 
-    this.redraw(true);
+    this.redraw();
   }
 
   end() {
@@ -78,7 +78,7 @@ class CanvasApp {
 
     this.strokes.forEach(s => this.drawStroke(s));
 
-    if (showPreview && this.currentStroke) {
+    if ( this.currentStroke) {
       this.drawStroke(this.currentStroke);
     }
 

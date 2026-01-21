@@ -3,72 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <title>Collaborative Canvas</title>
-
-  <!-- Basic styling -->
   <link rel="stylesheet" href="style.css" />
-
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #fafafa;
-    }
-
-    #toolbar {
-      padding: 10px;
-      background: #f0f0f0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      border-bottom: 1px solid #ccc;
-    }
-
-    #canvas-container {
-      display: flex;
-      justify-content: center;
-      padding: 10px;
-    }
-
-    canvas {
-      border: 1px solid #ccc;
-      background: #fff;
-      cursor: crosshair;
-    }
-  </style>
 </head>
 
 <body>
 
-  <!-- Toolbar -->
   <div id="toolbar">
-  <label>
-    Color:
-    <input type="color" id="color" value="#000000" />
-  </label>
+    <label>
+      Color:
+      <input type="color" id="color" value="#000000" />
+    </label>
 
-  <label>
-    Width:
-    <input type="range" id="width" min="1" max="20" value="5" />
-  </label>
+    <label>
+      Width:
+      <input type="range" id="width" min="1" max="20" value="5" />
+    </label>
 
-  <button id="undo">Undo</button>
-  <button id="redo">Redo</button>
+    <button id="undo">Undo</button>
+    <button id="redo">Redo</button>
 
-  <div id="users">
-    Online:
+    <div id="users">
+      <strong>Online:</strong>
+      <span id="userList"></span>
+    </div>
   </div>
-</div>
 
-
-   <!-- Canvas -->
   <div id="canvas-container">
     <canvas id="canvas" width="800" height="600"></canvas>
   </div>
 
-  <!-- Scripts MUST be last -->
   <script src="websocket.js"></script>
   <script src="canvas.js"></script>
   <script src="main.js"></script>
+
 </body>
 </html>
-
