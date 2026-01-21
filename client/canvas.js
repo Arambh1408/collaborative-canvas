@@ -6,7 +6,8 @@ class CanvasApp {
     this.strokes = [];
     this.currentStroke = null;
     this.isDrawing = false;
-    this.cursors = [];
+
+    this.cursors = {}; // userId -> { x, y, color }
 
     this.color = "#000000";
     this.width = 5;
@@ -18,6 +19,15 @@ class CanvasApp {
     this.canvas.addEventListener("mousedown", e => this.start(e));
     this.canvas.addEventListener("mousemove", e => this.move(e));
     this.canvas.addEventListener("mouseup", () => this.end());
+
+    // cursor tracking
+    this.canvas.addEventListener("mousemove", e => {
+      wsClient.send({
+        type: "cursor",
+        x: e.offsetX,
+        y: e.offsetY
+      });
+    });
   }
 
   start(e) {
@@ -58,6 +68,11 @@ class CanvasApp {
     this.redraw();
   }
 
+  updateCursor(userId, x, y, color) {
+    this.cursors[userId] = { x, y, color };
+    this.redraw();
+  }
+
   redraw(showPreview = false) {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
@@ -66,6 +81,14 @@ class CanvasApp {
     if (showPreview && this.currentStroke) {
       this.drawStroke(this.currentStroke);
     }
+
+    // draw cursors
+    Object.values(this.cursors).forEach(c => {
+      this.ctx.fillStyle = c.color;
+      this.ctx.beginPath();
+      this.ctx.arc(c.x, c.y, 4, 0, Math.PI * 2);
+      this.ctx.fill();
+    });
   }
 
   drawStroke(stroke) {
@@ -83,6 +106,4 @@ class CanvasApp {
     }
     this.ctx.stroke();
   }
-
-  updateCursor(x, y) {}
 }

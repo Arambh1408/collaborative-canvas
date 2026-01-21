@@ -41,29 +41,34 @@
 
   <!-- Toolbar -->
   <div id="toolbar">
-    <label>
-      Color:
-      <input type="color" id="color" value="#000000" />
-    </label>
+  <label>
+    Color:
+    <input type="color" id="color" value="#000000" />
+  </label>
 
-    <label>
-      Width:
-      <input type="range" id="width" min="1" max="20" value="5" />
-    </label>
-  </div>
+  <label>
+    Width:
+    <input type="range" id="width" min="1" max="20" value="5" />
+  </label>
 
   <button id="undo">Undo</button>
   <button id="redo">Redo</button>
 
-  <!-- Canvas -->
+  <div id="users">
+    Online:
+  </div>
+</div>
+
+
+   <!-- Canvas -->
   <div id="canvas-container">
     <canvas id="canvas" width="800" height="600"></canvas>
   </div>
 
-  <!-- Scripts (ORDER IS IMPORTANT) -->
+  <!-- Scripts MUST be last -->
   <script src="websocket.js"></script>
   <script src="canvas.js"></script>
   <script src="main.js"></script>
-
 </body>
 </html>
+

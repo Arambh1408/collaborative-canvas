@@ -1,5 +1,53 @@
-body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-#toolbar { padding: 10px; background: #f0f0f0; }
-#canvas { border: 1px solid #ccc; cursor: crosshair; }
-#users { margin-top: 10px; }
-.user { display: inline-block; width: 20px; height: 20px; margin: 0 5px; border-radius: 50%; }
+/* Page */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #eaeaea; /* contrast added */
+}
+
+/* Toolbar */
+#toolbar {
+  padding: 10px;
+  background: #f0f0f0;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Canvas container */
+#canvas-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* Canvas */
+canvas {
+  background: #ffffff;
+  border: 3px solid #333;   /* 🔥 strong visible border */
+  box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  cursor: crosshair;
+}
+
+/* Undo / Redo buttons */
+button {
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+/* Online user dots */
+#users {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 10px;
+}
+
+.user {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid #333;
+}
