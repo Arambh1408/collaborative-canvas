@@ -140,3 +140,10 @@ Undo and redo are implemented globally per room, not per user.
  - Minimal client responsibility
  - Additive feature extensions (no breaking changes)
  - Clear separation of concerns
+
+# Summary
+ * This architecture prioritizes:
+   - Correctness over cleverness
+   - Stability under concurrency
+   - Ease of debugging and explanation
+(The design choices are intentionally simple, making the system reliable, extensible, and interview-ready.)
