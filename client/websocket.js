@@ -1,17 +1,22 @@
 class WebSocketClient {
-  constructor(url, name, room) {
+  constructor(url, joinData) {
     this.ws = new WebSocket(url);
 
     this.ws.onopen = () => {
       this.send({
         type: "join",
-        name,
-        room
+        ...joinData
       });
     };
 
     this.ws.onmessage = (e) => {
       const msg = JSON.parse(e.data);
+
+      if (msg.type === "error") {
+        alert(msg.message);
+        this.ws.close();
+        return;
+      }
 
       if (msg.type === "state") {
         canvasApp.setState(msg.strokes);

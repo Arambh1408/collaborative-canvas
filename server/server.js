@@ -33,7 +33,8 @@ function saveRoomsToDisk() {
   Object.entries(rooms).forEach(([id, room]) => {
     data[id] = {
       strokes: room.strokes,
-      undone: room.undone
+      undone: room.undone,
+      password: room.password
     };
   });
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
@@ -46,12 +47,13 @@ function saveRoomsToDisk() {
 const rooms = {};
 const persistedRooms = loadRoomsFromDisk();
 
-function getRoom(roomId) {
+function getRoom(roomId, password = null) {
   if (!rooms[roomId]) {
     const persisted = persistedRooms[roomId] || {};
     rooms[roomId] = {
       strokes: persisted.strokes || [],
       undone: persisted.undone || [],
+      password: persisted.password || password,
       users: {}
     };
   }
@@ -88,31 +90,56 @@ function broadcastUsers(room) {
 wss.on("connection", (ws) => {
   const userId = crypto.randomUUID();
   let room = null;
-  let roomId = null;
 
   ws.on("message", (data) => {
     const msg = JSON.parse(data);
 
     /* -------- JOIN ROOM -------- */
     if (msg.type === "join") {
-      roomId = msg.room;
-      room = getRoom(roomId);
+  const roomId = msg.room;
+  const providedPassword = msg.password || null;
 
-      room.users[userId] = {
-        name: msg.name,
-        color: randomColor(),
-        ws
-      };
+  // 1️⃣ Check persisted room
+  const persisted = persistedRooms[roomId];
 
-      // send persisted state
-      ws.send(JSON.stringify({
-        type: "state",
-        strokes: room.strokes
-      }));
+  if (persisted && persisted.password !== providedPassword) {
+    ws.send(JSON.stringify({
+      type: "error",
+      message: "Invalid room password"
+    }));
+    ws.close();
+    return;
+  }
 
-      broadcastUsers(room);
-      return;
-    }
+  // 2️⃣ Check in-memory room
+  if (rooms[roomId] && rooms[roomId].password !== providedPassword) {
+    ws.send(JSON.stringify({
+      type: "error",
+      message: "Invalid room password"
+    }));
+    ws.close();
+    return;
+  }
+
+  // 3️⃣ Create or get room ONLY AFTER validation
+  room = getRoom(roomId, providedPassword);
+
+  room.users[userId] = {
+    name: msg.name,
+    color: randomColor(),
+    ws
+  };
+
+  ws.send(JSON.stringify({
+    type: "state",
+    strokes: room.strokes
+  }));
+
+  broadcastUsers(room);
+  saveRoomsToDisk();
+  return;
+}
+
 
     if (!room) return;
 
@@ -164,7 +191,6 @@ wss.on("connection", (ws) => {
     delete room.users[userId];
     broadcastUsers(room);
 
-    // save when last user leaves
     if (Object.keys(room.users).length === 0) {
       saveRoomsToDisk();
     }
