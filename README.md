@@ -136,7 +136,7 @@ collaborative-canvas/
 ### Test Rooms
 https://collaborative-canvas-a1pq.onrender.com/?room=demo  
 https://collaborative-canvas-a1pq.onrender.com/?room=private
-
+ (Note: On the free tier, the server may take up to ~50 seconds to respondafter inactivity due to cold starts.)
 
 
 # Final Notes
