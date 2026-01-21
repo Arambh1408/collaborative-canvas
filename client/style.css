@@ -1,6 +1,7 @@
 body {
-  margin: 0;
   font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
   background: #fafafa;
 }
 
@@ -20,19 +21,27 @@ body {
 }
 
 canvas {
-  border: 2px solid #444;
+  border: 2px solid #333;
   background: #fff;
+  cursor: crosshair;
 }
 
+/* ✅ ONLINE USERS */
 #users {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
 }
 
-.user {
+.user-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
   display: inline-block;
-  margin-right: 8px;
-  padding: 3px 8px;
-  border-radius: 12px;
-  background: #ddd;
-  font-size: 12px;
+}
+
+.user-name {
+  margin-right: 10px;
 }
