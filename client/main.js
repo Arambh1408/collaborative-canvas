@@ -11,17 +11,17 @@ window.onload = () => {
 
   const password = prompt("Room password (leave blank if none)") || null;
 
-  // initialize canvas
+  
   canvasApp = new CanvasApp(canvas);
 
-  // initialize websocket
+  
   wsClient = new WebSocketClient("ws://localhost:3000", {
     name,
     room,
     password
   });
 
-  /* ===== Toolbar Controls ===== */
+  
 
   document.getElementById("color").onchange = (e) => {
     canvasApp.color = e.target.value;
@@ -47,7 +47,7 @@ window.onload = () => {
     canvasApp.tool = "brush";
   };
 
-  /* ===== FPS Counter (Client-only) ===== */
+  
   let frames = 0;
   let lastTime = performance.now();
 

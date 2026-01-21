@@ -13,9 +13,7 @@ const server = app.listen(3000, () =>
 
 const wss = new WebSocket.Server({ server });
 
-/* =========================
-   PERSISTENCE
-========================= */
+
 
 const DATA_FILE = path.join(__dirname, "rooms-data.json");
 
@@ -40,9 +38,7 @@ function saveRoomsToDisk() {
   fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2));
 }
 
-/* =========================
-   ROOMS
-========================= */
+
 
 const rooms = {};
 const persistedRooms = loadRoomsFromDisk();
@@ -83,9 +79,7 @@ function broadcastUsers(room) {
   });
 }
 
-/* =========================
-   CONNECTION
-========================= */
+
 
 wss.on("connection", (ws) => {
   const userId = crypto.randomUUID();
@@ -94,18 +88,18 @@ wss.on("connection", (ws) => {
   ws.on("message", (data) => {
     const msg = JSON.parse(data);
 
-    /* ===== PERFORMANCE: PING / PONG ===== */
+    
     if (msg.type === "ping") {
       ws.send(JSON.stringify({ type: "pong" }));
       return;
     }
 
-    /* -------- JOIN ROOM -------- */
+    
     if (msg.type === "join") {
       const roomId = msg.room;
       const providedPassword = msg.password || null;
 
-      // check persisted room
+      
       const persisted = persistedRooms[roomId];
       if (persisted && persisted.password !== providedPassword) {
         ws.send(JSON.stringify({
@@ -116,7 +110,7 @@ wss.on("connection", (ws) => {
         return;
       }
 
-      // check in-memory room
+      
       if (rooms[roomId] && rooms[roomId].password !== providedPassword) {
         ws.send(JSON.stringify({
           type: "error",
@@ -126,7 +120,7 @@ wss.on("connection", (ws) => {
         return;
       }
 
-      // create / join room
+      
       room = getRoom(roomId, providedPassword);
 
       room.users[userId] = {
@@ -147,7 +141,7 @@ wss.on("connection", (ws) => {
 
     if (!room) return;
 
-    /* -------- DRAW -------- */
+    
     if (msg.type === "stroke") {
       room.strokes.push(msg.stroke);
       room.undone = [];
@@ -155,7 +149,7 @@ wss.on("connection", (ws) => {
       saveRoomsToDisk();
     }
 
-    /* -------- UNDO -------- */
+    
     if (msg.type === "undo") {
       if (room.strokes.length > 0) {
         room.undone.push(room.strokes.pop());
@@ -164,7 +158,7 @@ wss.on("connection", (ws) => {
       }
     }
 
-    /* -------- REDO -------- */
+    
     if (msg.type === "redo") {
       if (room.undone.length > 0) {
         room.strokes.push(room.undone.pop());
@@ -173,7 +167,7 @@ wss.on("connection", (ws) => {
       }
     }
 
-    /* -------- CURSOR -------- */
+    
     if (msg.type === "cursor") {
       const u = room.users[userId];
       if (!u) return;

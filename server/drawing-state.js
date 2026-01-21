@@ -6,7 +6,7 @@ class DrawingState {
 
   addStroke(stroke) {
     this.strokes.push(stroke);
-    this.undone = []; // clear redo stack on new draw
+    this.undone = []; 
   }
 
   undo() {

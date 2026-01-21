@@ -7,12 +7,12 @@ class CanvasApp {
     this.currentStroke = null;
     this.isDrawing = false;
 
-    this.cursors = {}; // userId -> { x, y, name, color }
+    this.cursors = {}; 
 
     this.color = "#000000";
     this.width = 5;
 
-    this.tool = "brush"; // "brush" | "eraser"
+    this.tool = "brush"; 
 
     this.attachEvents();
   }
@@ -23,7 +23,7 @@ class CanvasApp {
     this.canvas.addEventListener("mouseup", () => this.end());
     this.canvas.addEventListener("mouseleave", () => this.end());
 
-    // live cursor
+    
     this.canvas.addEventListener("mousemove", e => {
       wsClient.send({
         type: "cursor",
@@ -38,7 +38,7 @@ class CanvasApp {
 
     this.currentStroke = {
       id: crypto.randomUUID(),
-      tool: this.tool,          // ✅ STORE TOOL
+      tool: this.tool,          
       color: this.color,
       width: this.width,
       path: [{ x: e.offsetX, y: e.offsetY }]
@@ -81,11 +81,11 @@ class CanvasApp {
   redraw() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // draw strokes
+    
     this.strokes.forEach(s => this.drawStroke(s));
     if (this.currentStroke) this.drawStroke(this.currentStroke);
 
-    // draw cursors + names
+    
     Object.values(this.cursors).forEach(c => {
       this.ctx.fillStyle = c.color;
       this.ctx.beginPath();
@@ -101,12 +101,12 @@ class CanvasApp {
     const p = stroke.path;
     if (p.length < 2) return;
 
-    // 🔴 ERASER
+    
     if (stroke.tool === "eraser") {
       this.ctx.globalCompositeOperation = "destination-out";
       this.ctx.lineWidth = stroke.width * 2;
     } 
-    // 🖊 BRUSH
+    
     else {
       this.ctx.globalCompositeOperation = "source-over";
       this.ctx.strokeStyle = stroke.color;
@@ -122,7 +122,7 @@ class CanvasApp {
     }
     this.ctx.stroke();
 
-    // reset
+    
     this.ctx.globalCompositeOperation = "source-over";
   }
 }

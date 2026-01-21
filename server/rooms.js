@@ -4,7 +4,7 @@ const WebSocket = require("ws");
 class Room {
   constructor(id) {
     this.id = id;
-    this.users = {}; // { userId: { color, ws } }
+    this.users = {}; 
     this.drawingState = new DrawingState();
   }
 
@@ -35,12 +35,10 @@ class Room {
   handleMessage(msg) {
     switch (msg.type) {
 
-      /* =====================
-         STROKE HANDLING
-      ====================== */
+      
 
       case "stroke:start": {
-        // add stroke ONCE
+        
         this.drawingState.addStroke(msg.stroke);
 
         this.broadcast({
@@ -67,9 +65,6 @@ class Room {
         break;
       }
 
-      /* =====================
-         CURSOR TRACKING
-      ====================== */
 
       case "cursor": {
         const user = this.users[msg.userId];
@@ -85,9 +80,7 @@ class Room {
         break;
       }
 
-      /* =====================
-         UNDO / REDO
-      ====================== */
+      
 
       case "undo": {
         const undone = this.drawingState.undo();

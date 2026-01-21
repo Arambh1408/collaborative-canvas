@@ -1,4 +1,4 @@
-/* ===== Global ===== */
+
 body {
   font-family: Arial, sans-serif;
   margin: 0;
@@ -6,7 +6,6 @@ body {
   background: #fafafa;
 }
 
-/* ===== Toolbar ===== */
 #toolbar {
   padding: 10px;
   background: #f0f0f0;
@@ -16,21 +15,19 @@ body {
   border-bottom: 1px solid #ccc;
 }
 
-/* ===== Canvas Container ===== */
 #canvas-container {
   display: flex;
   justify-content: center;
   padding: 10px;
 }
 
-/* ===== Canvas ===== */
 canvas {
   border: 2px solid #333;
   background: #ffffff;
   cursor: crosshair;
 }
 
-/* ===== Online Users ===== */
+
 #users {
   margin-left: auto;
   display: flex;
@@ -50,7 +47,7 @@ canvas {
   margin-right: 10px;
 }
 
-/* ===== Performance Overlay (FPS + Latency) ===== */
+
 #perf {
   position: fixed;
   bottom: 10px;
