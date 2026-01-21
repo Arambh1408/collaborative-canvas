@@ -1,9 +1,13 @@
 class WebSocketClient {
-  constructor(url, name) {
+  constructor(url, name, room) {
     this.ws = new WebSocket(url);
 
     this.ws.onopen = () => {
-      this.send({ type: "join", name });
+      this.send({
+        type: "join",
+        name,
+        room
+      });
     };
 
     this.ws.onmessage = (e) => {
@@ -30,7 +34,6 @@ class WebSocketClient {
   }
 }
 
-/* ✅ Render user list */
 function renderUsers(users) {
   const container = document.getElementById("users");
   container.innerHTML = "Online:";
